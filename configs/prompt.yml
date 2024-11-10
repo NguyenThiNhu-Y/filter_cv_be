@@ -1,0 +1,115 @@
+extract_cv_prompt: |
+    Using the CV information provided:
+
+    {content_cv}
+
+    Please extract the following criteria, If there is one criterion but multiple pieces of information, separate the pieces of information with commas. If not found leave empty string
+        - Full Name: Candidate’s full name as mentioned in the CV.
+        - Contact Number: Phone number provided by the candidate for communication.
+        - Email Address: Email address listed for professional contact.
+        - Location: Candidate’s current city or region of residence.
+        - Degree Title: The academic degree obtained (e.g., Bachelor of Science, Master of Business Administration).
+        - Major: The primary field of study (e.g., Computer Science, Business Administration).
+        - Institution Name: The name of the educational institution attended (e.g., Harvard University).
+        - Graduation Year: The year the candidate graduated or is expected to graduate.
+        - Job Title: The title of the candidate's role at the company (e.g., Software Engineer, Project Manager).
+        - Key Responsibilities and Achievements: A summary of the candidate’s main tasks, projects, and accomplishments in that role.
+        - Technical Skills: Specific technical proficiencies relevant to the job (e.g., programming languages, tools, software).
+        - Soft Skills: Personal and interpersonal skills (e.g., leadership, communication, teamwork).
+        - Projects: Descriptions of notable projects the candidate has worked on, including personal, academic, or professional projects.
+        - Achievements: Any significant accomplishments, awards, or recognitions the candidate has received.
+        - Languages Spoken: A list of languages the candidate can speak, along with proficiency levels (e.g., Fluent, Conversational).
+
+    Format of response:
+        - full_name: ...
+        - contact_number: ...
+        - email_address: ...
+        - location: ...
+        - degree_title: ...
+        - major: ...
+        - institution_name: ...
+        - graduation_year: ...
+        - job_title: ...
+        - key_responsibilities_and_chievements: ...
+        - soft_skills: ...
+        - projects: ...
+        - achievements: ...
+        - languages_spoken: ...
+
+resume_template: |
+    {
+        basicInfo: {
+            fullName: string
+            email: string
+            phoneNumber: string
+            address: string
+            linkedInMainPageUrl?: string | null
+            githubMainPageUrl?: string | null
+            portfolioMainPageUrl: string | null
+            jobTitle: string
+            summaryOrObjectives: string
+        }
+        skills: string[] | null
+        languages: string[] | null
+        awards: {
+            title: string
+            date: string (full ISO 8601 Formats) | null
+        }[] | null
+        certifications: {
+            title: string
+            date: string (full ISO 8601 Formats) | null
+        }[] | null
+        educations: {
+            educationName: string
+            startDate: string (full ISO 8601 Formats)
+            endDate: string (full ISO 8601 Formats) | null
+            major: string
+            gpa: number
+        }[] | null
+        workExperiences: {
+            companyName: string
+            jobTitle: string
+            jobSumary: string
+            startDate: string (full ISO 8601 Formats)
+            endDate: string (full ISO 8601 Formats) | null
+        }[] | null
+        projectExperiences: {
+            projectName: string
+            description: string
+            technologies: string
+            responsibilities: string
+            startDate: string (full ISO 8601 Formats)
+            endDate: string (full ISO 8601 Formats) | null
+            repositoryUrl: string | null
+            demoOrLiveUrl: string | null
+            }[] | null
+        }
+
+prompt: |
+    You will be provided with text.
+
+    {content_cv}
+    
+    If it contains information about a resume then summarize the information into a JSON with exactly the following structure: 
+    
+    {resume_template}. 
+
+    If the text does not contain information of a resume, then simply write None instead JSON schema.
+
+find_folder: |
+    You will be provided with information.
+
+    File name:
+    {file_name}
+
+    Content:
+    {content_cv}
+
+    Folder list:
+    {list_folder}
+
+    Get the id of the corresponding folder and return JSON with the following exact structure:
+
+    {{folder_id: string | null}}
+
+    If the text does not contain information of a resume, then simply write None instead JSON schema.

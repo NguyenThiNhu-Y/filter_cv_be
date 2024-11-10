@@ -1,0 +1,17 @@
+# MongoDB URL and database name
+db_url: 'mongodb://localhost:27017/'
+db_name: 'do_an'
+default_limit: 10
+
+# Collection names 
+users_collection: 'users'
+folders_collection: 'folders'
+resumes_collection: 'resumes'
+resume_languages_collection: 'resume_languages'
+resume_references_collection: 'resume_references'
+resume_awards_collection: 'resume_awards'
+resume_certificates_collection: 'resume_certificates'
+resume_work_experiences_collection: 'resume_work_experiences'
+resume_educations_collection: 'resume_educations_collection'
+resume_project_experiences_collection: 'resume_project_experiences_collection'
+resume_skill_collection: 'resume_skill_collection'

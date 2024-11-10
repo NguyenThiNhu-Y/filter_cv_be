@@ -1,0 +1,4 @@
+CVs
+logs
+__pycache__/
+.env

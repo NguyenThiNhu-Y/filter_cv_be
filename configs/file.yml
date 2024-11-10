@@ -1,0 +1,7 @@
+"kb": 1024
+"max_size_in_mb": 1048576
+"support_file_types": {"application/pdf": "pdf"}
+"scopes": ['https://www.googleapis.com/auth/gmail.readonly']
+"folder_cvs_path": "CVs"
+"token_file_path": r"src\gmail\token.json"
+"credential_file_path": r"src\gmail\credentials.json"
