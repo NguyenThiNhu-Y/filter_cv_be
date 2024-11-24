@@ -13,6 +13,21 @@ class ResumeCertificate(MongoDB):
     def __init__(self):
         super().__init__(db_cfg.resume_certificates_collection)
 
+    def get_resume_certificate_by_resume_id(self, resume_id):
+        search_filter = {
+            "resume_id": ObjectId(resume_id),
+            "is_deleted": False
+        }
+
+        certificate_datas = self.find_all(search_filter)
+        result = []
+        for certificate_data in certificate_datas:
+            result.append({
+                "title": certificate_data["title"],
+                "certification_embedding": certificate_data["certification_embedding"],
+            })
+        return result
+
     def get_resume_certificate(self, resume_certificate_id):
         try:
             resume_certificate = self.find_one({"_id": ObjectId(resume_certificate_id), "is_deleted": False})

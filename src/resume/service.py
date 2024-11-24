@@ -6,15 +6,18 @@ import json
 import base64
 from PIL import Image
 import io
+import numpy as np
+import ast
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 from langchain.schema import HumanMessage
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 from utils import calculate_hash_by_file_path
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import util
 
 sys.path.append(".")
 from config import cfg
@@ -28,6 +31,7 @@ from resume.request import (
    ReferencesRequest,
    ResumeData, 
    ResumeRequest,
+   SearchResume,
    SkilRequest, 
    WorkExperienceRequest
 )
@@ -104,10 +108,13 @@ def generate_thumbnails(pdf_path):
    return img_base64
 
 def embedding(text: str):
-   # model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-   # embedding = model.encode(text)
-   # return embedding.tolist()
-   return []
+   model = OpenAIEmbeddings(
+      model="text-embedding-3-large",
+   )
+   embedding = []
+   if text:
+      embedding = model.embed_query(text)
+   return embedding
 
 def crawl_resume(user_id, start_date, end_date):
    creds = None
@@ -272,6 +279,7 @@ def save_resume(folder_id, file_path, resume_hash=""):
                start_date=item.startDate,
                end_date=item.endDate,
                gpa=item.gpa,
+               major=item.major
          )
          resume_education_mongodb.create_resume_education(education_request)
 
@@ -281,7 +289,7 @@ def save_resume(folder_id, file_path, resume_hash=""):
          workExperiences_request = WorkExperienceRequest(
                resume_id=resume_id,
                job_title=item.jobTitle,
-               job_sumary=item.jobSumary,
+               job_summary=item.jobSumary,
                company_name=item.companyName,
                start_date=item.startDate,
                end_date=item.endDate,
@@ -325,4 +333,134 @@ def save_resume(folder_id, file_path, resume_hash=""):
          resume_skill_mongodb.create_resume_skill(skill_request)
 
    return resume_id
+
+def get_award(resume_id):
+   award = resume_award_mongodb.get_resume_award_by_resume_id(resume_id)
+   award_title_embedding = [item['award_title_embedding'] for item in award]
+   return award_title_embedding
+
+def get_certificate(resume_id):
+   certificate = resume_certificate_mongodb.get_resume_certificate_by_resume_id(resume_id)
+   certification_embedding = [item['certification_embedding'] for item in certificate]
+   return certification_embedding
+
+def get_education(resume_id):
+   education = resume_education_mongodb.get_resume_education_by_resume_id(resume_id)
+   education_name_embedding = [item['education_name_embedding'] for item in education]
+   return education_name_embedding
+
+def get_language(resume_id):
+   language = resume_language_mongodb.get_resume_language_by_resume_id(resume_id)
+   language_name_embedding = [item['language_name_embedding'] for item in language]
+   return language_name_embedding
+
+def get_skill(resume_id):
+   skill = resume_skill_mongodb.get_resume_skill_by_resume_id(resume_id)
+   skill_name_embedding = [item['skill_name_embedding'] for item in skill]
+   return skill_name_embedding
+
+def search_resume(request_search: SearchResume):
+   result_resume_search = []
+   if not request_search.folder_id:
+        return []
+
+   resumes = resume_mongodb.get_all_resume_by_folder_id(request_search.folder_id, 1, 99999)
+
+   query_embedding_job_title = embedding(request_search.job_title)
+   results = []
+   for resume in resumes:
+      # job_title_embedding = resume['job_title_embedding']
+      # similarity = np.dot(query_embedding_job_title, job_title_embedding) / (
+      #    np.linalg.norm(query_embedding_job_title) * np.linalg.norm(job_title_embedding)
+      # )
+      # results.append({"resume": resume, "similarity": similarity})
+
+      resume_id = resume["resume_id"]
+      award_title_embedding = get_award(resume_id)
+
+      certification_embedding = get_certificate(resume_id)
+
+      education_name_embedding = get_education(resume_id)
+
+      language_name_embedding = get_language(resume_id)
+
+      skill_name_embedding =get_skill(resume_id)
+
+      search_awards = True
+      for award in request_search.awards:
+         query_embedding_award = embedding(award.value)
+         select_awards = util.semantic_search(
+            np.array(query_embedding_award, dtype=np.float32),
+            np.array(award_title_embedding, dtype=np.float32),
+         )[0]
+         select_awards = [item for item in select_awards if item["score"] >= 0.76]
+         if len(select_awards) == 0 and award.required:
+            search_awards = False
+            break
+
+      search_certifications = True
+      for certification in request_search.certificates:
+         query_embedding_certification = embedding(certification.value)
+         select_certifications = util.semantic_search(
+               np.array(query_embedding_certification, dtype=np.float32),
+               np.array(certification_embedding, dtype=np.float32),
+         )[0]
+         select_certifications = [
+               item for item in select_certifications if item["score"] >= 0.76
+         ]
+         if len(select_certifications) == 0 and certification.required:
+               search_certifications = False
+               break
+
+      search_languages = True
+      for language in request_search.languages:
+         query_embedding_language = embedding(language.value)
+         select_languages = util.semantic_search(
+               np.array(query_embedding_language, dtype=np.float32),
+               np.array(language_name_embedding, dtype=np.float32),
+         )[0]
+         select_languages = [
+               item for item in select_languages if item["score"] >= 0.76
+         ]
+         if len(select_languages) == 0 and language.required:
+               search_languages = False
+               break
+
+      search_educations = True
+      for education in request_search.educations:
+         query_embedding_education = embedding(education.value)
+         select_educations = util.semantic_search(
+               np.array(query_embedding_education, dtype=np.float32),
+               np.array(education_name_embedding, dtype=np.float32),
+         )[0]
+         select_educations = [
+               item for item in select_educations if item["score"] >= 0.76
+         ]
+         if len(select_educations) == 0 and education.required:
+               search_educations = False
+               break
+
+      search_skills = True
+      for skill in request_search.skills:
+         query_embedding_skill = embedding(skill.value)
+         select_skills = util.semantic_search(
+               np.array(query_embedding_skill, dtype=np.float32),
+               np.array(skill_name_embedding, dtype=np.float32),
+         )[0]
+         print("select_skills", select_skills)
+         select_skills = [item for item in select_skills if item["score"] >= 0.76]
+         if len(select_skills) == 0 and skill.required:
+               search_skills = False
+               break
+
+      if (
+         search_awards
+         and search_certifications
+         and search_languages
+         and search_educations
+         and search_skills
+      ):
+         result_resume_search.append(resume)
+
+   return result_resume_search
 

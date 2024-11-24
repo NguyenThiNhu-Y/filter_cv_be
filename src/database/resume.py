@@ -35,7 +35,29 @@ class Resume(MongoDB):
         except Exception as e:
             logger.error(f"An error occurred while retrieving resume {resume_id}: {e}")
             return None
-        
+    
+    def get_all(self):
+        search_filter = {
+                "is_deleted": False
+            }
+        resumess = self.find_all(search_filter)
+        result = []
+        for resumes in resumess:
+            result.append({
+                "resume_id": resumes["_id"]["$oid"],
+                "folder_id": resumes["folder_id"]["$oid"],
+                "job_title": resumes["job_title"],
+                "job_title": resumes["job_title"],
+                "full_name": resumes["full_name"],
+                "resume_thumbnail_base64": resumes["resume_thumbnail_base64"],
+                "email": resumes["email"],
+                "phone_number": resumes["phone_number"],
+                "skills": [],
+                "create_at": resumes["create_at"]["$date"],
+                "updated_at": resumes["updated_at"]["$date"],
+            })
+        return result
+    
     def get_all_resume_by_folder_id(self, folder_id, page, limit):
         try:
             search_filter = {
@@ -47,9 +69,9 @@ class Resume(MongoDB):
             result = []
             for resumes in resumess:
                 result.append({
-                    "resumes_id": resumes["_id"]["$oid"],
+                    "resume_id": resumes["_id"]["$oid"],
                     "folder_id": resumes["folder_id"]["$oid"],
-                    "job_title": resumes["job_title"],
+                    "job_title_embedding": resumes["job_title_embedding"],
                     "full_name": resumes["full_name"],
                     "resume_thumbnail_base64": resumes["resume_thumbnail_base64"],
                     "email": resumes["email"],

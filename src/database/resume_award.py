@@ -13,6 +13,21 @@ class ResumeAward(MongoDB):
     def __init__(self):
         super().__init__(db_cfg.resume_awards_collection)
 
+    def get_resume_award_by_resume_id(self, resume_id):
+        search_filter = {
+            "resume_id": ObjectId(resume_id),
+            "is_deleted": False
+        }
+
+        award_datas = self.find_all(search_filter)
+        result = []
+        for award_data in award_datas:
+            result.append({
+                "title": award_data["title"],
+                "award_title_embedding": award_data["award_title_embedding"],
+            })
+        return result
+
     def get_resume_award(self, resume_award_id):
         try:
             resume_award = self.find_one({"_id": ObjectId(resume_award_id), "is_deleted": False})

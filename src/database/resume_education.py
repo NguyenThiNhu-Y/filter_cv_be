@@ -13,6 +13,21 @@ class ResumeEducation(MongoDB):
     def __init__(self):
         super().__init__(db_cfg.resume_educations_collection)
 
+    def get_resume_education_by_resume_id(self, resume_id):
+        search_filter = {
+            "resume_id": ObjectId(resume_id),
+            "is_deleted": False
+        }
+
+        education_datas = self.find_all(search_filter)
+        result = []
+        for education_data in education_datas:
+            result.append({
+                "name": education_data["name"],
+                "education_name_embedding": education_data["education_name_embedding"],
+            })
+        return result
+
     def get_resume_education(self, resume_education_id):
         try:
             education = self.find_one({"_id": ObjectId(resume_education_id), "is_deleted": False})

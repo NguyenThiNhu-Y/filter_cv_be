@@ -101,6 +101,7 @@ class CertificationRequest(BaseModel):
 class EducationRequest(BaseModel):
     resume_id: str | None = None
     name: str | None = None
+    major: str | None = None
     education_name_embedding: List[float]
     start_date: str | None = None
     end_date: str | None = None
@@ -134,7 +135,7 @@ class SkilRequest(BaseModel):
 class WorkExperienceRequest(BaseModel):
     resume_id: str | None = None
     job_title: str | None = None
-    job_sumary: str | None = None
+    job_summary: str | None = None
     company_name: str | None = None
     start_date: str | None = None
     end_date: str | None = None

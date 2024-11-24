@@ -6,7 +6,7 @@ from resume.request import (
     CrawlResumeRequest, 
     SearchResume, 
 )
-from resume.service import crawl_resume, find_folder_of_resume, save_resume
+from resume.service import crawl_resume, find_folder_of_resume, save_resume, search_resume
 from utils import calculate_hash, validate_file
 from database.resume import Resume as ResumeMongoDB
 from database.resume_reference import ResumeReference as ResumeReferenceMongoDB
@@ -34,7 +34,7 @@ router = APIRouter()
 
 @router.post("/search")
 def get_all(search_request: SearchResume):
-    resumes = resume_mongodb.get_all_resume_by_folder_id(search_request.folder_id, search_request.page, search_request.limit)
+    resumes = search_resume(search_request)
     return resumes
 
 @router.post("/crawl_resume")

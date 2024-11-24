@@ -13,6 +13,21 @@ class ResumeSkill(MongoDB):
     def __init__(self):
         super().__init__(db_cfg.resume_skill_collection)
 
+    def get_resume_skill_by_resume_id(self, resume_id):
+        search_filter = {
+            "resume_id": ObjectId(resume_id),
+            "is_deleted": False
+        }
+
+        skill_datas = self.find_all(search_filter)
+        result = []
+        for skill_data in skill_datas:
+            result.append({
+                "skill_name": skill_data["skill_name"],
+                "skill_name_embedding": skill_data["skill_name_embedding"],
+            })
+        return result
+
     def get_resume_skill(self, resume_skill_id):
         try:
             resume_skill = self.find_one({"_id": ObjectId(resume_skill_id), "is_deleted": False})

@@ -12,6 +12,21 @@ db_cfg = cfg.db
 class ResumeLanguage(MongoDB):
     def __init__(self):
         super().__init__(db_cfg.resume_languages_collection)
+    
+    def get_resume_language_by_resume_id(self, resume_id):
+        search_filter = {
+            "resume_id": ObjectId(resume_id),
+            "is_deleted": False
+        }
+
+        language_datas = self.find_all(search_filter)
+        result = []
+        for language_data in language_datas:
+            result.append({
+                "language_name": language_data["language_name"],
+                "language_name_embedding": language_data["language_name_embedding"],
+            })
+        return result
 
     def get_resume_language(self, resume_language_id):
         try:
